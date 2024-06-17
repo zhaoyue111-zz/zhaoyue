@@ -94,7 +94,7 @@ public class Model extends Observable {
         setChanged();
     }
 
-    /** Tilt the board toward SIDE. Return true iff this changes the board.
+    /** Tilt the board toward SIDE. Return true if this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
      *    the same value, they are merged into one Tile of twice the original
@@ -113,6 +113,38 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        // 第i行上移：i-1行为空或者i-1行值与第i行相同（合并）
+        // 从第3行开始：一次只可能移动一块
+        board.setViewingPerspective(side);
+
+        for (int i=0;i<size();i++){
+            int bottom = size();
+            for (int j=size()-2;j>=0;j--){
+                if (tile(i,j)!=null){
+
+                    for (int r=j+1;r<bottom;r++){
+                        if (tile(i,r)!=null){
+
+                            if (tile(i,r).value()!=tile(i,j).value()){
+                                board.move(i,r-1,tile(i,r));
+                                break;
+                            }else{
+                                board.move(i,r,tile(i,j));
+                                score+=tile(i,r).value();
+                                bottom=r;
+                                break;
+                            }
+
+                        } else if (r==bottom-1) {
+                            board.move(i,r,tile(i,j));
+                            break;
+                        }
+                    }
+                    changed=true;
+                }
+            }
+        }
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
@@ -137,7 +169,14 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        // TODO: Fill in this function.如果矩阵中有一个为空就直接返回true，否则就返回false
+         for (int i=0;i<b.size();i++){
+             for (int j=0;j<b.size();j++){
+                 if (b.tile(i,j)==null){
+                     return true;
+                 }
+             }
+         }
         return false;
     }
 
@@ -147,7 +186,15 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        // TODO: Fill in this function.  如果有一块内容等于MAX_PIECE就返回true
+        for (int i=0;i<b.size();i++){
+            for (int j=0;j<b.size();j++){
+                Tile t=b.tile(i,j);
+                if (t!=null&&t.value()==MAX_PIECE){   // 注意t不一定有值
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -159,6 +206,26 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
+        if (emptySpaceExists(b))   // 如果有空格，一定返回true
+            return true;
+
+        // 没有空格的时候，一定可以合并--相邻值相等 -- 只有有一对就返回true
+        // 先考虑左上角的，最右侧的竖着测一遍，最下侧的横着测一遍
+        for (int i=0;i<b.size()-1;i++){
+            for (int j=0;j<b.size()-1;j++){
+                Tile left=b.tile(i,j);
+                Tile right=b.tile(i,j+1);
+                Tile down=b.tile(i+1,j);
+                if (left.value()==right.value() || left.value()==down.value()){   // 一定不为空，一定有值
+                    return true;
+                }
+            }
+        }
+        for (int i=0;i<b.size()-1;i++){
+            if (b.tile(i,b.size()-1).value()==b.tile(i+1,b.size()-1).value() || b.tile(b.size()-1,i).value()==b.tile(b.size()-1,i+1).value()){
+                return true;
+            }
+        }
         return false;
     }
 
