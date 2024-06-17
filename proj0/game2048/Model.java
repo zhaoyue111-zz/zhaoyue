@@ -119,30 +119,34 @@ public class Model extends Observable {
 
         for (int i=0;i<size();i++){
             int bottom = size();
+
             for (int j=size()-2;j>=0;j--){
-                if (tile(i,j)!=null){
+                int object = 0;
+                if(board.tile(i,j) != null ){
+                    object = board.tile(i,j).value();
+                }
+                if(object != 0){
+                    for(int record = j+1; record < bottom; record++ ){
+                        if(board.tile(i,record) != null) {
 
-                    for (int r=j+1;r<bottom;r++){
-                        if (tile(i,r)!=null){
-
-                            if (tile(i,r).value()!=tile(i,j).value()){
-                                board.move(i,r-1,tile(i,r));
+                            if (board.tile(i, record).value() != object) {
+                                board.move(i, record - 1, board.tile(i, j));
                                 break;
-                            }else{
-                                board.move(i,r,tile(i,j));
-                                score+=tile(i,r).value();
-                                bottom=r;
+                            } else{
+                                board.move(i, record, board.tile(i, j));
+                                score += 2 * object;
+                                bottom = record;
                                 break;
                             }
 
-                        } else if (r==bottom-1) {
-                            board.move(i,r,tile(i,j));
+                        }else if(record == bottom - 1){
+                            board.move(i, record , board.tile(i, j));
                             break;
                         }
                     }
                     changed=true;
                 }
-            }
+        }
         }
         board.setViewingPerspective(Side.NORTH);
 
